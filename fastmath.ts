@@ -20,9 +20,9 @@ export function fmul_fast(a: number, b: number): number {
   const uiA = new Uint32Array(1);
   const uiB = new Uint32Array(1);
   uiA[0]=0x007FFFFF;
-  uiB[0]=ia^ib; 
+  uiB[0]=(ia^ib)>>>0; 
   //return u2f((ia + ib - 0x3F800000) + (((ia ^ ib) & 0x007FFFFFu) >> 4));
-  return u2f((ia + ib - 0x3F800000) + ((uiA[0] & uiB[0]) >> 4));
+  return u2f((ia + ib - 0x3F800000)>>>0 + ((uiA[0]>>>0 & uiB[0]>>>0) >>> 4));
 }
 
 export function fdiv_fast(a: number, b: number): number {
@@ -31,24 +31,28 @@ export function fdiv_fast(a: number, b: number): number {
   const uiA = new Uint32Array(1);
   const uiB = new Uint32Array(1);
   uiA[0]=0x007FFFFF;
-  uiB[0]=ia^ib;
+  uiB[0]=ia^ib>>>0;
   //return u2f((ia - ib + 0x3F800000) - (((ia ^ ib) & 0x007FFFFFu) >> 4));
-  return u2f((ia - ib + 0x3F800000) - ((uiA[0] & uiB[0]) >> 4));
+  return u2f((ia - ib + 0x3F800000)>>>0 - ((uiA[0]>>>0 & uiB[0]>>>0) >>> 4));
 }
 
 export function finv_fast(x: number): number {
-  const ix: number = f2u(x);
-  const uiA = new Uint32Array(1);
-  uiA[0] = 0x007FFFFF;
-  //return u2f((0x7F000000 - ix) + ((ix & 0x007FFFFFu) >> 3));
-  return u2f((0x7F000000 - ix) + ((ix & uiA[0]) >> 3));
+  const ix = f2u(x) >>> 0;
+
+  // exponent inversion approximation
+  const base = (0x7F000000 - ix) >>> 0;
+
+  // mantissa correction (scaled)
+  const mant = (ix & 0x007FFFFF) >>> 2;
+
+  return u2f((base>>>0 + mant>>>0) >>> 0);
 }
 
 export function fsqrt_fast(x: number): number {
   const ix: number = f2u(x);
   const uiA = new Uint32Array(1);
   uiA[0] = 0x007FFFFF;
-  return u2f((ix >> 1) + 0x1FC00000 + ((ix & uiA[0]) >> 5));
+  return u2f(((ix >>> 1) + 0x1FC00000)>>>0 + ((ix>>>0 & uiA[0]>>>0) >>> 5));
   //return u2f((ix >> 1) + 0x1FC00000 + ((ix & 0x007FFFFFu) >> 5));
 }
 
@@ -56,7 +60,7 @@ export function frsqrt_fast(x: number): number {
   const ix: number = f2u(x);
   const uiA = new Uint32Array(1);
   uiA[0] = 0x007FFFFF;
-  return u2f((0x5F400000 - (ix >> 1)) + ((ix & uiA[0]) >> 4));
+  return u2f(((0x5F400000 - (ix >>> 1))>>>0 + ((ix>>>0 & uiA[0]>>>0) >>> 4)));
   //return u2f((0x5F400000 - (ix >> 1)) + ((ix & 0x007FFFFFu) >> 4));
 }
 
