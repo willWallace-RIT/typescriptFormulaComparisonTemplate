@@ -8,8 +8,20 @@ import {
     ftan_fast
 } from "./fastmath";
 
+
 const canvas = document.getElementById('plotCanvas')!;
 const ctx = canvas.getContext('2d')!;
+const cycle = document.getElementById('cycle')!;
+const pp = document.getElementById('pp')!;
+let inc = 0;
+let spacie = "" 
+cycle.onclick = clicky;
+
+function clicky(){
+    inc+=1;
+    plotFormulas(formulas);
+
+}
 
 function getRandomColor() {
     const r = Math.floor(Math.random() * 256);
@@ -19,11 +31,16 @@ function getRandomColor() {
 }
 
 function plotFormulas(formulas) {
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
    const deps = [fmul_fast, fdiv_fast, finv_fast, fsqrt_fast, fcos_fast, fsine_fast, ftan_fast];
-
-formulas.forEach((formula) => {
+    let formIter = formulas.length/2;
+    let realIter = inc%formIter;
+    //let formies = [formulas[realIter*2],formulas[(realIter*2)+1]];
+    let formies = [formulas[inc%formulas.length]];
+        
+formies.forEach((formula) => {
     const color = getRandomColor();
 
     const fn = new Function(
@@ -40,22 +57,23 @@ formulas.forEach((formula) => {
 
     const step = 2;
     ctx.strokeStyle = color;
-
     for (let x = -canvas.width / 2; x < canvas.width / 2; x += step) {
         const y1 = fn(x, ...deps);
         const y2 = fn(x + step, ...deps);
 
         if (!Number.isFinite(y1) || !Number.isFinite(y2)) continue;
         if (Math.abs(y2 - y1) > 1000) continue;
-
+        console.log(formula+":x-"+y1+"y-"+y2);
         ctx.beginPath();
         ctx.moveTo(x + canvas.width / 2, canvas.height / 2 - y1 * 10);
         ctx.lineTo(x + canvas.width / 2 + step, canvas.height / 2 - y2 * 10);
         ctx.stroke();
     }
 });
+    //pp.innerHTML = formies[0] + "|" + formies[1];
+    pp.innerHTML = formies[0];
 }
-
+ 
 const formulas = [
     'fmul_fast(x,7.6903)',
     'x*7.6903',
@@ -72,5 +90,6 @@ const formulas = [
     'ftan_fast(x)',
     'Math.tan(x)',
 ];
+
 
 plotFormulas(formulas);
